@@ -1,0 +1,54 @@
+.form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span {
+  color: #344054;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.field select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #c7d7e0;
+  border-radius: 8px;
+  padding: 0 12px;
+  color: #17212b;
+  background: #ffffff;
+}
+
+.field select:disabled {
+  color: #98a2b3;
+  background: #f3f8fb;
+}
+
+.submitButton {
+  min-height: 44px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 18px;
+  color: white;
+  background: #00a6d6;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submitButton:disabled {
+  cursor: not-allowed;
+  background: #9dcddd;
+}
+
+@media (max-width: 920px) {
+  .form {
+    grid-template-columns: 1fr;
+  }
+}

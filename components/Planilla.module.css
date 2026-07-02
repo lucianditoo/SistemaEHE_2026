@@ -1,0 +1,61 @@
+.sheet {
+  display: flex;
+  flex-direction: column;
+  width: 297mm;
+  min-height: 210mm;
+  padding: 8mm;
+  border: 1px solid #cfd8df;
+  background: white;
+  color: #111827;
+  page-break-after: always;
+  break-after: page;
+  overflow: hidden;
+}
+
+.sheet:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+.footer {
+  display: grid;
+  grid-template-columns: 1fr 58mm;
+  gap: 18mm;
+  align-items: end;
+  margin-top: auto;
+  padding-top: 5mm;
+  font-size: 11pt;
+}
+
+.signatureField {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: end;
+  gap: 2mm;
+}
+
+.signatureField strong {
+  display: block;
+  min-width: 42mm;
+  height: 5mm;
+  border-bottom: 1px solid #111827;
+}
+
+@media screen {
+  .sheet {
+    box-shadow: 0 18px 40px rgba(32, 79, 101, 0.12);
+  }
+}
+
+@media print {
+  .sheet {
+    width: 297mm;
+    height: 210mm;
+    min-height: 210mm;
+    padding: 8mm;
+    border: 0;
+    box-shadow: none;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}

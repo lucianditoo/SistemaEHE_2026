@@ -1,0 +1,55 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js / builds
+.next/
+out/
+dist/
+build/
+
+# Variables de entorno locales
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Tests / coverage
+coverage/
+playwright-report/
+test-results/
+
+# Cache y archivos temporales
+.cache/
+.turbo/
+.eslintcache
+*.tsbuildinfo
+
+# Carpetas temporales de Codex
+work/
+outputs/
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Base de datos local / dumps
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.backup
+
+# Archivos de Prisma generados localmente
+prisma/dev.db
+prisma/dev.db-journal
