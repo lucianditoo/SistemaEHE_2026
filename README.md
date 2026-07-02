@@ -19,7 +19,7 @@ Antes de ejecutar el sistema hace falta tener instalado:
 2. PostgreSQL
 3. Una base de datos llamada `ehe_planillas`
 
-El instalador del proyecto baja las dependencias JavaScript usando pnpm via npx si pnpm no esta instalado globalmente. PostgreSQL debe estar instalado y ejecutandose en la maquina. No se requiere Docker.
+El instalador del proyecto baja las dependencias JavaScript usando pnpm via npx si pnpm no esta instalado globalmente. PostgreSQL debe estar instalado y ejecutandose en la maquina.
 
 ## Instalacion rapida
 
