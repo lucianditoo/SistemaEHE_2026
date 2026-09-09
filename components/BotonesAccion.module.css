@@ -1,0 +1,31 @@
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 40px;
+  border-radius: 8px;
+  padding: 0 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 0;
+  color: white;
+  background: #00a6d6;
+}
+
+.secondaryButton {
+  border: 1px solid #00a6d6;
+  color: #007a9c;
+  background: white;
+}
+
+@media print {
+  .actions {
+    display: none;
+  }
+}

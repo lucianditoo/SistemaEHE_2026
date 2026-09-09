@@ -1,0 +1,85 @@
+.page {
+  min-height: 100vh;
+  padding: 24px;
+  background: #eaf3f6;
+}
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 1180px;
+  margin: 0 auto 20px;
+  padding: 16px 18px;
+  border: 1px solid #d8e2ea;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 30px rgba(32, 79, 101, 0.08);
+}
+
+.toolbar p,
+.toolbar h1 {
+  margin: 0;
+}
+
+.toolbar p {
+  color: #667085;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.toolbar h1 {
+  font-size: 22px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backLink {
+  color: #007a9c;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.printStack,
+.printOnlyPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.emptyState {
+  display: grid;
+  place-items: center;
+  min-height: 60vh;
+  color: #344054;
+  text-align: center;
+}
+
+.emptyState a {
+  color: #007a9c;
+  font-weight: 700;
+}
+
+@media print {
+  .page,
+  .printOnlyPage,
+  .printStack {
+    display: block;
+    padding: 0;
+    background: white;
+  }
+
+  .toolbar {
+    display: none;
+  }
+}

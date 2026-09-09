@@ -1,0 +1,49 @@
+.header {
+  display: grid;
+  grid-template-columns: 58mm 1fr;
+  gap: 5mm;
+  margin-bottom: 4mm;
+}
+
+.titleBlock {
+  display: grid;
+  place-items: center;
+  border: 1px solid #111827;
+  padding: 0.2mm;
+}
+
+.logo {
+  display: block;
+  width: 100%;
+  max-width: 57.2mm;
+  height: 32mm;
+  object-fit: contain;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid #111827;
+  border-left: 1px solid #111827;
+}
+
+.metaItem {
+  min-height: 11mm;
+  border-right: 1px solid #111827;
+  border-bottom: 1px solid #111827;
+  padding: 1.3mm 2mm;
+}
+
+.metaItem span {
+  display: block;
+  margin-bottom: 1mm;
+  font-size: 7.2pt;
+  color: #374151;
+}
+
+.metaItem strong {
+  display: block;
+  min-height: 4mm;
+  font-size: 9.6pt;
+  line-height: 1.1;
+}

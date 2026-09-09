@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vivienda {
+  id             String   @id @default(cuid())
+  dominio        String
+  upm            String
+  partido        String
+  cod_part       String?
+  localidad      String?
+  cod_loc        String?
+  fraccion       String?
+  radio          String?
+  segmento       String?
+  orden_viv      String?
+  manzana        String?
+  lado           String?
+  calle          String?
+  numero         String?
+  tipo_viv       String?
+  edificio       String?
+  entrada        String?
+  piso           String?
+  depto          String?
+  habitacion     String?
+  descripcion    String?
+  telefono       String?
+  observaciones  String?
+  cod_lado       String
+  origen         String   @default("REAL")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([partido])
+  @@index([partido, upm])
+  @@index([partido, upm, fraccion])
+  @@index([dominio])
+  @@index([cod_lado])
+  @@map("viviendas")
+}
