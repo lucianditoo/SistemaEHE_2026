@@ -11,7 +11,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed:mock": "tsx prisma/seed.ts",
-    "importar:xls": "tsx prisma/importar-xls.ts"
+    "importar:xls": "tsx --env-file=.env prisma/importar-xls.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0",

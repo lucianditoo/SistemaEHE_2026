@@ -92,12 +92,24 @@ NEXT_PUBLIC_APP_URL="http://nombre-o-ip-del-servidor:3006"
 - `ENCUESTA = EHE`
 - `ENC_2026 = X`
 
-La importacion conserva los codigos como texto para no perder ceros iniciales, reemplaza cualquier importacion EHE 2026 anterior y elimina los registros mock. El archivo Excel no se copia al repositorio.
+La importacion conserva los codigos como texto para no perder ceros iniciales. `COD VIV` identifica de manera unica cada vivienda: las cargas posteriores agregan codigos nuevos y omiten los que ya existen, sin modificar los registros cargados anteriormente. El archivo Excel no se copia al repositorio.
 
 Tambien se puede ejecutar por consola:
 
 ```powershell
 pnpm run importar:xls -- "C:\ruta\ehe2026.xls"
+```
+
+Las bases que fueron cargadas antes de incorporar `COD VIV` necesitan una unica recarga inicial del archivo completo:
+
+```bash
+pnpm run importar:xls -- --reemplazar "./ehe2026.xls"
+```
+
+Despues de esa recarga, los archivos adicionales se importan de forma acumulativa:
+
+```bash
+pnpm run importar:xls -- "./tablas.xls"
 ```
 
 ## Datos mock opcionales

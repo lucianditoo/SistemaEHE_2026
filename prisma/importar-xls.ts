@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 const prisma = new PrismaClient();
 const ORIGEN = "EHE_2026_XLS";
 const TAMANO_LOTE = 1_000;
+const OPCION_REEMPLAZAR = "--reemplazar";
 
 type FilaXls = Record<string, unknown>;
 
@@ -53,6 +54,21 @@ function valorRequerido(fila: FilaXls, columna: string, numeroFila: number): str
   return resultado;
 }
 
+function normalizarEncabezado(valor: unknown): string {
+  return texto(valor).toUpperCase().replace(/[\s_-]+/g, "");
+}
+
+function obtenerCodViv(fila: FilaXls, numeroFila: number): string {
+  const entrada = Object.entries(fila).find(([columna]) => normalizarEncabezado(columna) === "CODVIV");
+  const codViv = texto(entrada?.[1]);
+
+  if (!codViv) {
+    throw new Error(`La fila ${numeroFila} no tiene un valor para COD VIV.`);
+  }
+
+  return codViv;
+}
+
 function crearOrdenVivienda(fila: FilaXls): string | null {
   const vivienda = texto(fila.NVIV);
   const decimal = texto(fila.NVIV_DEC);
@@ -69,6 +85,7 @@ function crearCodLado(fila: FilaXls): string {
 
 function convertirFila(fila: FilaXls, numeroFila: number): Prisma.ViviendaCreateManyInput {
   return {
+    cod_viv: obtenerCodViv(fila, numeroFila),
     dominio: valorRequerido(fila, "DOMINIO", numeroFila),
     upm: valorRequerido(fila, "UPM", numeroFila),
     partido: valorRequerido(fila, "PARTIDO", numeroFila),
@@ -106,12 +123,24 @@ function dividirEnLotes<T>(elementos: T[], tamano: number): T[][] {
 }
 
 async function importar(): Promise<void> {
-  const argumento = process.argv[2];
-  if (!argumento) {
-    throw new Error("Falta la ruta del archivo. Usa: pnpm importar:xls -- ruta\\archivo.xls");
+  const argumentos = process.argv.slice(2);
+  const reemplazar = argumentos.includes(OPCION_REEMPLAZAR);
+  const opcionesDesconocidas = argumentos.filter(
+    (argumento) => argumento.startsWith("--") && argumento !== OPCION_REEMPLAZAR
+  );
+  const archivos = argumentos.filter((argumento) => !argumento.startsWith("--"));
+
+  if (opcionesDesconocidas.length > 0) {
+    throw new Error(`Opciones desconocidas: ${opcionesDesconocidas.join(", ")}`);
   }
 
-  const rutaArchivo = path.resolve(argumento);
+  if (archivos.length !== 1) {
+    throw new Error(
+      "Indica un archivo. Usa: pnpm run importar:xls -- ruta/archivo.xls [--reemplazar]"
+    );
+  }
+
+  const rutaArchivo = path.resolve(archivos[0]);
   if (!existsSync(rutaArchivo)) {
     throw new Error(`No se encontro el archivo: ${rutaArchivo}`);
   }
@@ -127,7 +156,11 @@ async function importar(): Promise<void> {
 
   const matriz = XLSX.utils.sheet_to_json<unknown[]>(hoja, { header: 1, raw: false, blankrows: false });
   const encabezados = new Set((matriz[0] ?? []).map(texto));
-  const faltantes = columnasRequeridas.filter((columna) => !encabezados.has(columna));
+  const faltantes: string[] = columnasRequeridas.filter((columna) => !encabezados.has(columna));
+
+  if (!(matriz[0] ?? []).some((columna) => normalizarEncabezado(columna) === "CODVIV")) {
+    faltantes.push("COD VIV");
+  }
 
   if (faltantes.length > 0) {
     throw new Error(`Faltan columnas requeridas: ${faltantes.join(", ")}`);
@@ -145,15 +178,53 @@ async function importar(): Promise<void> {
     throw new Error("No se encontraron filas con ENCUESTA = EHE y ENC_2026 = X.");
   }
 
+  const codigosVistos = new Set<string>();
+  const codigosDuplicados = new Set<string>();
+
+  for (const { fila, numeroFila } of filasEhe2026) {
+    const codViv = obtenerCodViv(fila, numeroFila);
+    if (codigosVistos.has(codViv)) codigosDuplicados.add(codViv);
+    codigosVistos.add(codViv);
+  }
+
+  if (codigosDuplicados.size > 0) {
+    const muestra = [...codigosDuplicados].slice(0, 10).join(", ");
+    throw new Error(`El archivo contiene COD VIV duplicados: ${muestra}.`);
+  }
+
   const viviendas = filasEhe2026.map(({ fila, numeroFila }) => convertirFila(fila, numeroFila));
   const lotes = dividirEnLotes(viviendas, TAMANO_LOTE);
 
-  console.log(`Importando ${viviendas.length} viviendas EHE 2026 en ${lotes.length} lotes...`);
+  console.log(
+    `${reemplazar ? "Reemplazando la carga" : "Agregando viviendas"}: ${viviendas.length} filas en ${lotes.length} lotes...`
+  );
+  let agregadas = 0;
+
   await prisma.$transaction(
     async (tx) => {
-      await tx.vivienda.deleteMany({ where: { origen: { in: ["MOCK", ORIGEN] } } });
+      if (reemplazar) {
+        await tx.vivienda.deleteMany({ where: { origen: { in: ["MOCK", ORIGEN] } } });
+      } else {
+        const viviendasSinCodViv = await tx.vivienda.count({
+          where: { origen: ORIGEN, cod_viv: null }
+        });
+
+        if (viviendasSinCodViv > 0) {
+          throw new Error(
+            `Hay ${viviendasSinCodViv} viviendas de una importacion anterior sin COD VIV. ` +
+              "Vuelve a importar una vez el archivo completo usando --reemplazar; las siguientes cargas podran ser incrementales."
+          );
+        }
+
+        await tx.vivienda.deleteMany({ where: { origen: "MOCK" } });
+      }
+
       for (const lote of lotes) {
-        await tx.vivienda.createMany({ data: lote });
+        const resultado = await tx.vivienda.createMany({
+          data: lote,
+          skipDuplicates: !reemplazar
+        });
+        agregadas += resultado.count;
       }
     },
     { maxWait: 10_000, timeout: 120_000 }
@@ -167,7 +238,9 @@ async function importar(): Promise<void> {
   ]);
 
   console.log("Importacion completada.");
-  console.log(`Viviendas: ${total}`);
+  console.log(`Viviendas agregadas: ${agregadas}`);
+  console.log(`Viviendas omitidas porque COD VIV ya existia: ${viviendas.length - agregadas}`);
+  console.log(`Viviendas EHE 2026 acumuladas: ${total}`);
   console.log(`Partidos: ${partidos.length}`);
   console.log(`UPM: ${upms.length}`);
   console.log(`Dominios: ${dominios.length}`);

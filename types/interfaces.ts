@@ -1,5 +1,6 @@
 export interface Vivienda {
   id: string;
+  cod_viv: string | null;
   dominio: string;
   upm: string;
   partido: string;
