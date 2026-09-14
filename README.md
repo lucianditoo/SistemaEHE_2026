@@ -46,16 +46,44 @@ powershell -ExecutionPolicy Bypass -File .\instalar-dependencias.ps1
 powershell -ExecutionPolicy Bypass -File .\iniciar-sistema.ps1
 ```
 
+## Instalacion en un servidor Linux
+
+El servidor necesita Node.js 22 o superior; se recomienda Node.js 24 LTS. No copies las carpetas `node_modules` o `.next` generadas en Windows, porque contienen binarios especificos del sistema operativo.
+
+Despues de clonar el repositorio y crear el archivo `.env`, ejecuta:
+
+```bash
+chmod +x instalar-dependencias.sh
+chmod +x iniciar-sistema.sh
+./instalar-dependencias.sh
+```
+
+El instalador usa pnpm 11.7.0, reinstala las dependencias para Linux, genera Prisma Client, instala Chromium y sus librerias, compila la aplicacion y aplica las migraciones. La instalacion de librerias de Chromium puede solicitar permisos `sudo`.
+
+Para iniciar el servidor en produccion:
+
+```bash
+./iniciar-sistema.sh
+```
+
+La aplicacion escucha en `0.0.0.0:3006`. El proceso queda en primer plano para que pueda administrarse mediante `systemd`, Supervisor u otro gestor de servicios del servidor.
+
 ## Variables de entorno
 
-El instalador genera `.env` automaticamente con la clave de la instalacion local de PostgreSQL. `.env.example` queda como referencia:
+El instalador de Windows genera `.env` automaticamente con la clave de la instalacion local de PostgreSQL. En Linux, `instalar-dependencias.sh` crea una copia de `.env.example` si el archivo no existe y avisa que debe configurarse antes de iniciar el servidor.
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/ehe_planillas?schema=public"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-No es necesario editar `.env` durante una instalacion normal.
+En Windows no es necesario editar `.env` durante una instalacion normal. En un servidor Linux debes configurar `DATABASE_URL` con el usuario, la clave y la direccion reales de PostgreSQL.
+
+Para el servidor asignado al puerto 3006, configura tambien la URL publica correspondiente, por ejemplo:
+
+```env
+NEXT_PUBLIC_APP_URL="http://nombre-o-ip-del-servidor:3006"
+```
 
 ## Importacion de datos
 
