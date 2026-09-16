@@ -8,7 +8,7 @@
 .titleBlock {
   display: grid;
   place-items: center;
-  border: 1px solid #111827;
+  border: 1px solid transparent;
   padding: 0.2mm;
 }
 
@@ -16,7 +16,7 @@
   display: block;
   width: 100%;
   max-width: 57.2mm;
-  height: 32mm;
+  height: 38mm;
   object-fit: contain;
 }
 

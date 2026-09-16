@@ -12,8 +12,6 @@ export function Planilla({ pagina }: PlanillaProps) {
     <article className={styles.sheet}>
       <EncabezadoPlanilla
         encabezado={pagina.encabezado}
-        numeroPagina={pagina.numeroPagina}
-        totalPaginasDominio={pagina.totalPaginasDominio}
       />
       <TablaViviendas viviendas={pagina.viviendas} />
       <footer className={styles.footer}>

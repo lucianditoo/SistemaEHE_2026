@@ -17,13 +17,12 @@
 }
 
 .logoSlot {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   width: 190px;
-  height: 126px;
-  border: 1px solid #c7dce6;
-  border-radius: 8px;
-  background: #ffffff;
+  height: 156px;
   overflow: hidden;
 }
 

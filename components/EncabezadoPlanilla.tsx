@@ -4,8 +4,6 @@ import styles from "./EncabezadoPlanilla.module.css";
 
 interface EncabezadoPlanillaProps {
   encabezado: EncabezadoPlanillaData;
-  numeroPagina: number;
-  totalPaginasDominio: number;
 }
 
 const campos = [
@@ -20,11 +18,11 @@ const campos = [
   ["Segmento", "segmento"]
 ] as const;
 
-export function EncabezadoPlanilla({ encabezado, numeroPagina, totalPaginasDominio }: EncabezadoPlanillaProps) {
+export function EncabezadoPlanilla({ encabezado }: EncabezadoPlanillaProps) {
   return (
     <header className={styles.header}>
       <div className={styles.titleBlock}>
-        <Image src="/logo.png" alt="EHE Encuesta de Hogares y Empleo" width={420} height={300} className={styles.logo} priority />
+        <Image src="/logo-ehe-transparente.png" alt="EHE Encuesta de Hogares y Empleo" width={1443} height={1090} className={styles.logo} unoptimized priority />
       </div>
       <div className={styles.metaGrid}>
         {campos.map(([label, key]) => (
@@ -34,12 +32,8 @@ export function EncabezadoPlanilla({ encabezado, numeroPagina, totalPaginasDomin
           </div>
         ))}
         <div className={styles.metaItem}>
-          <span>Cant. aprox. viviendas</span>
+          <span>Cantidad de viviendas</span>
           <strong>{encabezado.cantidadViviendas}</strong>
-        </div>
-        <div className={styles.metaItem}>
-          <span>Pagina</span>
-          <strong>{numeroPagina} / {totalPaginasDominio}</strong>
         </div>
       </div>
     </header>

@@ -65,7 +65,7 @@ export default async function PlanillasPage({ searchParams }: { searchParams: Se
       ) : (
         <section className={styles.printStack}>
           {paginas.map((pagina, index) => (
-            <Planilla key={pagina.dominio + "-" + pagina.numeroPagina + "-" + index} pagina={pagina} />
+            <Planilla key={pagina.dominio + "-" + index} pagina={pagina} />
           ))}
         </section>
       )}

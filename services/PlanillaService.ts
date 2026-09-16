@@ -1,6 +1,6 @@
 import { ViviendaRepository } from "@/repositories/ViviendaRepository";
 import type { EncabezadoPlanillaData, FiltrosPlanilla, PaginaPlanilla, Vivienda } from "@/types/interfaces";
-import { completarFilas, paginar } from "@/utils/paginador";
+import { completarFilas } from "@/utils/paginador";
 
 const VIVIENDAS_POR_PAGINA = 14;
 
@@ -26,15 +26,10 @@ export class PlanillaService {
 
     for (const viviendasGrupo of gruposDePlanillas.values()) {
       const dominio = viviendasGrupo[0]?.dominio ?? "";
-      const paginasGrupo = paginar(viviendasGrupo, VIVIENDAS_POR_PAGINA);
-      paginasGrupo.forEach((viviendasPagina, index) => {
-        paginas.push({
-          dominio,
-          numeroPagina: index + 1,
-          totalPaginasDominio: paginasGrupo.length,
-          encabezado: this.crearEncabezado(viviendasGrupo),
-          viviendas: completarFilas(viviendasPagina, VIVIENDAS_POR_PAGINA)
-        });
+      paginas.push({
+        dominio,
+        encabezado: this.crearEncabezado(viviendasGrupo),
+        viviendas: completarFilas(viviendasGrupo.slice(0, 1), VIVIENDAS_POR_PAGINA)
       });
     }
 

@@ -13,7 +13,7 @@ export default async function Home() {
     <main className={styles.pageShell}>
       <section className={styles.hero}>
         <div className={styles.brandBar}>
-          <div className={styles.logoSlot}><Image src="/logo.png" alt="EHE Encuesta de Hogares y Empleo" width={150} height={110} priority /></div>
+          <div className={styles.logoSlot}><Image src="/logo-ehe-transparente.png" alt="EHE Encuesta de Hogares y Empleo" width={1443} height={1090} unoptimized priority /></div>
           <div>
             <p className={styles.kicker}>Direccion Provincial de Estadistica</p>
             <h1>Sistema de Impresion de Planillas EHE</h1>

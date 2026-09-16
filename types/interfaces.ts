@@ -54,8 +54,6 @@ export interface EncabezadoPlanillaData {
 
 export interface PaginaPlanilla {
   dominio: string;
-  numeroPagina: number;
-  totalPaginasDominio: number;
   encabezado: EncabezadoPlanillaData;
   viviendas: Array<Vivienda | null>;
 }

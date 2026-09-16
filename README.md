@@ -2,6 +2,19 @@
 
 Aplicacion local para generar e imprimir planillas de campo de la Encuesta de Hogares y Empleo.
 
+## Planillas de campo
+
+Se genera una hoja A4 horizontal por segmento dentro de su cabecera geografica y dominio.
+La tabla conserva 14 filas: solo la primera vivienda del recorrido se imprime con datos;
+las otras 13 quedan vacias para completar a mano. Cantidad de viviendas indica el total
+de registros del grupo, no solo la fila visible. Cada hoja incluye el logo EHE vigente,
+el nombre del encuestador y la fecha, sin numeracion de paginas.
+
+Los cambios de presentacion son comunes a Windows y Linux. Despues de actualizar el
+codigo en Linux, ejecutar `pnpm run build` (o `npm run build` si el servidor utiliza npm)
+y reiniciar el servicio existente en el puerto 3006. No copiar `.env`, `node_modules`
+ni `.next` desde Windows. Si hay migraciones pendientes, aplicarlas antes del arranque.
+
 ## Tecnologias
 
 - Next.js 15 con App Router

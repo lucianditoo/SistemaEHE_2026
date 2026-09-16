@@ -41,7 +41,7 @@ export default async function PrintPage({ searchParams }: { searchParams: Search
   return (
     <main className={styles.printOnlyPage}>
       {paginas.map((pagina, index) => (
-        <Planilla key={pagina.dominio + "-" + pagina.numeroPagina + "-" + index} pagina={pagina} />
+        <Planilla key={pagina.dominio + "-" + index} pagina={pagina} />
       ))}
     </main>
   );
