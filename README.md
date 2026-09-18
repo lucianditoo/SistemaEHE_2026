@@ -102,11 +102,14 @@ NEXT_PUBLIC_APP_URL="http://nombre-o-ip-del-servidor:3006"
 ## Importacion de datos
 
 `Importar Datos EHE.bat` abre un selector de archivos y pregunta si se deben reemplazar
-las viviendas de prueba y las cargas anteriores. El archivo Excel no se copia al repositorio.
+todas las viviendas importadas. Para agregar otro partido se debe responder N. El archivo
+Excel no se copia al repositorio.
 
-Para los archivos con la estructura de `MUESTRAPARAPLANILLA`, esta hoja es la fuente completa.
-`INICIO DE SEGMENTO` no se importa por separado, porque contiene las mismas viviendas.
-`ID_Vivienda` identifica cada registro; `NVIV` y `NVIV_DEC` forman Orden Viv; `ES_INICIO = X`
+El importador detecta la hoja completa por sus columnas, por ejemplo `MUESTRAPARAPLANILLA`
+o `muestraehePueyrredon`. Las otras hojas del libro no se importan por separado.
+Si existe `ID_EHE`, es el identificador unico de la vivienda y se guarda en la columna
+`id_ehe` de PostgreSQL. Los archivos sin esa columna usan `ID_Vivienda` como identificador
+anterior. `NVIV` y `NVIV_DEC` forman Orden Viv; `ES_INICIO = X`
 marca la primera vivienda que se imprime completa. Se exige una marca por segmento y un maximo
 de 14 viviendas. `MZA` y `COD_LADO` se toman del Excel. Los codigos se conservan como texto
 para no perder ceros iniciales. El archivo `ehe2026.xls` del ano anterior no es compatible
@@ -130,12 +133,12 @@ Para reemplazar las viviendas de prueba y las cargas anteriores de este sistema:
 pnpm run importar:xls -- --reemplazar "ruta/EHEADOLFOALSINA-1.xlsx"
 ```
 
-El reemplazo elimina registros de origen `MOCK` y `EHE_2026_XLS`, pero conserva los de
-otros origenes. Sin `--reemplazar`, la carga es incremental y omite identificadores existentes.
-Para agregar archivos posteriores sin borrar los anteriores:
+El reemplazo elimina registros de origen `MOCK` y `EHE_2026_XLS` de todos los partidos, pero
+conserva los de otros origenes. Sin `--reemplazar`, la carga es incremental y omite identificadores
+existentes. Para agregar General Pueyrredon sin alterar Adolfo Alsina:
 
 ```bash
-pnpm run importar:xls -- "./tablas.xls"
+pnpm run importar:xls -- "./Muestra_Integral_Estratificada_5_V2_357.xlsx"
 ```
 
 ## Datos mock opcionales

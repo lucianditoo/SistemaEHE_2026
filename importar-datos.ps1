@@ -40,7 +40,7 @@ if (-not $archivo) {
 Write-Host "Importando viviendas EHE 2026 desde:" -ForegroundColor Cyan
 Write-Host $archivo -ForegroundColor White
 Write-Host ""
-$reemplazar = Read-Host "Reemplazar las viviendas de prueba y cargas anteriores? (S/N)"
+$reemplazar = Read-Host "Reemplazar TODAS las viviendas importadas, incluso las de otros partidos? (S/N; N para agregar)"
 if ($reemplazar -match '^(s|si)$') {
   Invoke-Pnpm run importar:xls -- $archivo --reemplazar
 } else {

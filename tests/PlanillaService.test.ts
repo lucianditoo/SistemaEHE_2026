@@ -6,7 +6,7 @@ import type { Vivienda } from "../types/interfaces";
 
 function vivienda(id: number, segmento = "S1", dominio = "D1"): Vivienda {
   return {
-    id: String(id), cod_viv: null, dominio, upm: "1", partido: "Prueba",
+    id: String(id), cod_viv: null, id_ehe: null, dominio, upm: "1", partido: "Prueba",
     cod_part: "001", localidad: "Prueba", cod_loc: "001", fraccion: "01",
     radio: "01", segmento, orden_viv: String(id), es_inicio: false, manzana: "001", lado: "01",
     calle: "Calle de prueba", numero: String(id), tipo_viv: "A",

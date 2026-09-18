@@ -10,6 +10,7 @@ datasource db {
 model Vivienda {
   id            String   @id @default(cuid())
   cod_viv       String?  @unique
+  id_ehe        String?  @unique
   dominio       String
   upm           String
   partido       String
