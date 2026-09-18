@@ -1,13 +1,14 @@
 # Sistema de Impresion de Planillas EHE
 
-Aplicacion local para generar e imprimir planillas de campo de la Encuesta de Hogares y Empleo.
+Aplicacion para generar e imprimir planillas de campo de la Encuesta de Hogares y Empleo, en una PC local o en el servidor de test.
 
 ## Planillas de campo
 
 Se genera una hoja A4 horizontal por segmento dentro de su cabecera geografica y dominio.
-La tabla conserva 14 filas: solo la primera vivienda del recorrido se imprime con datos;
-las otras 13 quedan vacias para completar a mano. Cantidad de viviendas indica el total
-de registros del grupo, no solo la fila visible. Cada hoja incluye el logo EHE vigente,
+La tabla conserva 14 filas: la vivienda marcada como inicio del segmento se imprime con todos
+sus datos; en las siguientes solo aparece Orden Viv y el resto queda para completar a mano.
+Cantidad de viviendas indica el total de registros del grupo. Un segmento con mas de 14
+viviendas se rechaza para no omitir ordenes. Cada hoja incluye el logo EHE vigente,
 el nombre del encuestador y la fecha, sin numeracion de paginas.
 
 Los cambios de presentacion son comunes a Windows y Linux. Despues de actualizar el
@@ -100,26 +101,38 @@ NEXT_PUBLIC_APP_URL="http://nombre-o-ip-del-servidor:3006"
 
 ## Importacion de datos
 
-`Importar Datos EHE.bat` abre un selector de archivos e importa solamente los registros que cumplen:
+`Importar Datos EHE.bat` abre un selector de archivos y pregunta si se deben reemplazar
+las viviendas de prueba y las cargas anteriores. El archivo Excel no se copia al repositorio.
 
-- `ENCUESTA = EHE`
-- `ENC_2026 = X`
-
-La importacion conserva los codigos como texto para no perder ceros iniciales. `COD VIV` identifica de manera unica cada vivienda: las cargas posteriores agregan codigos nuevos y omiten los que ya existen, sin modificar los registros cargados anteriormente. El archivo Excel no se copia al repositorio.
+Para los archivos con la estructura de `MUESTRAPARAPLANILLA`, esta hoja es la fuente completa.
+`INICIO DE SEGMENTO` no se importa por separado, porque contiene las mismas viviendas.
+`ID_Vivienda` identifica cada registro; `NVIV` y `NVIV_DEC` forman Orden Viv; `ES_INICIO = X`
+marca la primera vivienda que se imprime completa. Se exige una marca por segmento y un maximo
+de 14 viviendas. `MZA` y `COD_LADO` se toman del Excel. Los codigos se conservan como texto
+para no perder ceros iniciales. El archivo `ehe2026.xls` del ano anterior no es compatible
+con esta carga porque tiene otra estructura.
 
 Tambien se puede ejecutar por consola:
 
 ```powershell
-pnpm run importar:xls -- "C:\ruta\ehe2026.xls"
+pnpm run importar:xls -- "C:\ruta\muestra-ehe.xlsx"
 ```
 
-Las bases que fueron cargadas antes de incorporar `COD VIV` necesitan una unica recarga inicial del archivo completo:
+Para validar el Excel nuevo sin escribir en la base:
 
 ```bash
-pnpm run importar:xls -- --reemplazar "./ehe2026.xls"
+pnpm run importar:xls -- --validar "ruta/EHEADOLFOALSINA-1.xlsx"
 ```
 
-Despues de esa recarga, los archivos adicionales se importan de forma acumulativa:
+Para reemplazar las viviendas de prueba y las cargas anteriores de este sistema:
+
+```bash
+pnpm run importar:xls -- --reemplazar "ruta/EHEADOLFOALSINA-1.xlsx"
+```
+
+El reemplazo elimina registros de origen `MOCK` y `EHE_2026_XLS`, pero conserva los de
+otros origenes. Sin `--reemplazar`, la carga es incremental y omite identificadores existentes.
+Para agregar archivos posteriores sin borrar los anteriores:
 
 ```bash
 pnpm run importar:xls -- "./tablas.xls"

@@ -26,10 +26,18 @@ export class PlanillaService {
 
     for (const viviendasGrupo of gruposDePlanillas.values()) {
       const dominio = viviendasGrupo[0]?.dominio ?? "";
+      if (viviendasGrupo.length > VIVIENDAS_POR_PAGINA) {
+        throw new Error(
+          `El segmento ${viviendasGrupo[0]?.segmento ?? "sin codigo"} tiene ${viviendasGrupo.length} viviendas; la planilla admite ${VIVIENDAS_POR_PAGINA}.`
+        );
+      }
+
+      const inicio = viviendasGrupo.find((vivienda) => vivienda.es_inicio) ?? viviendasGrupo[0];
+      const viviendasOrdenadas = [inicio, ...viviendasGrupo.filter((vivienda) => vivienda !== inicio)];
       paginas.push({
         dominio,
         encabezado: this.crearEncabezado(viviendasGrupo),
-        viviendas: completarFilas(viviendasGrupo.slice(0, 1), VIVIENDAS_POR_PAGINA)
+        viviendas: completarFilas(viviendasOrdenadas, VIVIENDAS_POR_PAGINA)
       });
     }
 

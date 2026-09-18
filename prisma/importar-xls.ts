@@ -7,34 +7,15 @@ const prisma = new PrismaClient();
 const ORIGEN = "EHE_2026_XLS";
 const TAMANO_LOTE = 1_000;
 const OPCION_REEMPLAZAR = "--reemplazar";
+const OPCION_VALIDAR = "--validar";
 
 type FilaXls = Record<string, unknown>;
 
-const columnasRequeridas = [
-  "DOMINIO",
-  "UPM",
-  "CODPART",
-  "PARTIDO",
-  "CODLOC",
-  "LOCALIDAD",
-  "FRACCION",
-  "RADIO",
-  "MANZANA",
-  "LADO",
-  "NVIV",
-  "NVIV_DEC",
-  "CALLE",
-  "NUMERO",
-  "EDIFICIO",
-  "ENTRADA",
-  "PISO",
-  "DPTO_EDIF",
-  "HABITACION",
-  "TIPO_VIV",
-  "DESCRIPCION",
-  "SEGMENTO",
-  "ENCUESTA",
-  "ENC_2026"
+const columnasMuestra = [
+  "ID_Vivienda", "DOMINIO", "UPM", "CODPART", "PARTIDO", "CODLOC", "LOCALIDAD",
+  "FRACCION", "RADIO", "MZA", "LADO", "NVIV", "NVIV_DEC", "COD_LADO",
+  "CALLE", "NUMERO", "EDIFICIO", "ENTRADA", "PISO", "DPTO_EDIF",
+  "HABITACION", "TIPO_VIV", "DESCRIPCION", "SEGMENTO", "ES_INICIO"
 ] as const;
 
 function texto(valor: unknown): string {
@@ -54,21 +35,6 @@ function valorRequerido(fila: FilaXls, columna: string, numeroFila: number): str
   return resultado;
 }
 
-function normalizarEncabezado(valor: unknown): string {
-  return texto(valor).toUpperCase().replace(/[\s_-]+/g, "");
-}
-
-function obtenerCodViv(fila: FilaXls, numeroFila: number): string {
-  const entrada = Object.entries(fila).find(([columna]) => normalizarEncabezado(columna) === "CODVIV");
-  const codViv = texto(entrada?.[1]);
-
-  if (!codViv) {
-    throw new Error(`La fila ${numeroFila} no tiene un valor para COD VIV.`);
-  }
-
-  return codViv;
-}
-
 function crearOrdenVivienda(fila: FilaXls): string | null {
   const vivienda = texto(fila.NVIV);
   const decimal = texto(fila.NVIV_DEC);
@@ -77,15 +43,9 @@ function crearOrdenVivienda(fila: FilaXls): string | null {
   return decimal && decimal !== "0" ? `${vivienda}.${decimal}` : vivienda;
 }
 
-function crearCodLado(fila: FilaXls): string {
-  return ["UPM", "CODPART", "CODLOC", "FRACCION", "RADIO", "MANZANA", "LADO"]
-    .map((columna) => texto(fila[columna]))
-    .join("-");
-}
-
 function convertirFila(fila: FilaXls, numeroFila: number): Prisma.ViviendaCreateManyInput {
   return {
-    cod_viv: obtenerCodViv(fila, numeroFila),
+    cod_viv: valorRequerido(fila, "ID_Vivienda", numeroFila),
     dominio: valorRequerido(fila, "DOMINIO", numeroFila),
     upm: valorRequerido(fila, "UPM", numeroFila),
     partido: valorRequerido(fila, "PARTIDO", numeroFila),
@@ -96,7 +56,8 @@ function convertirFila(fila: FilaXls, numeroFila: number): Prisma.ViviendaCreate
     radio: textoOpcional(fila.RADIO),
     segmento: textoOpcional(fila.SEGMENTO),
     orden_viv: crearOrdenVivienda(fila),
-    manzana: textoOpcional(fila.MANZANA),
+    es_inicio: texto(fila.ES_INICIO).toUpperCase() === "X",
+    manzana: textoOpcional(fila.MZA),
     lado: textoOpcional(fila.LADO),
     calle: textoOpcional(fila.CALLE),
     numero: textoOpcional(fila.NUMERO),
@@ -109,9 +70,43 @@ function convertirFila(fila: FilaXls, numeroFila: number): Prisma.ViviendaCreate
     descripcion: textoOpcional(fila.DESCRIPCION),
     telefono: null,
     observaciones: null,
-    cod_lado: crearCodLado(fila),
+    cod_lado: valorRequerido(fila, "COD_LADO", numeroFila),
     origen: ORIGEN
   };
+}
+
+function claveSegmento(fila: FilaXls): string {
+  return JSON.stringify([
+    fila.DOMINIO, fila.UPM, fila.CODPART, fila.CODLOC,
+    fila.FRACCION, fila.RADIO, fila.SEGMENTO
+  ].map(texto));
+}
+
+function validarSegmentos(filas: Array<{ fila: FilaXls; numeroFila: number }>): void {
+  const grupos = new Map<string, Array<{ fila: FilaXls; numeroFila: number }>>();
+
+  for (const entrada of filas) {
+    const clave = claveSegmento(entrada.fila);
+    grupos.set(clave, [...(grupos.get(clave) ?? []), entrada]);
+  }
+
+  for (const grupo of grupos.values()) {
+    const segmento = texto(grupo[0].fila.SEGMENTO);
+    const inicios = grupo.filter(({ fila }) => texto(fila.ES_INICIO).toUpperCase() === "X");
+    if (inicios.length !== 1) {
+      throw new Error(`El segmento ${segmento} debe tener exactamente una vivienda con ES_INICIO = X; tiene ${inicios.length}.`);
+    }
+    if (grupo.length > 14) {
+      throw new Error(`El segmento ${segmento} tiene ${grupo.length} viviendas; la planilla admite 14.`);
+    }
+
+    for (const { fila, numeroFila } of grupo) {
+      const cantidad = texto(fila["cant viviendas del segmento"]);
+      if (cantidad && Number(cantidad) !== grupo.length) {
+        throw new Error(`La fila ${numeroFila} indica ${cantidad} viviendas para el segmento ${segmento}, pero hay ${grupo.length}.`);
+      }
+    }
+  }
 }
 
 function dividirEnLotes<T>(elementos: T[], tamano: number): T[][] {
@@ -123,10 +118,11 @@ function dividirEnLotes<T>(elementos: T[], tamano: number): T[][] {
 }
 
 async function importar(): Promise<void> {
-  const argumentos = process.argv.slice(2);
+  const argumentos = process.argv.slice(2).filter((argumento) => argumento !== "--");
   const reemplazar = argumentos.includes(OPCION_REEMPLAZAR);
+  const validar = argumentos.includes(OPCION_VALIDAR);
   const opcionesDesconocidas = argumentos.filter(
-    (argumento) => argumento.startsWith("--") && argumento !== OPCION_REEMPLAZAR
+    (argumento) => argumento.startsWith("--") && ![OPCION_REEMPLAZAR, OPCION_VALIDAR].includes(argumento)
   );
   const archivos = argumentos.filter((argumento) => !argumento.startsWith("--"));
 
@@ -136,7 +132,7 @@ async function importar(): Promise<void> {
 
   if (archivos.length !== 1) {
     throw new Error(
-      "Indica un archivo. Usa: pnpm run importar:xls -- ruta/archivo.xls [--reemplazar]"
+      "Indica un archivo. Usa: pnpm run importar:xls -- ruta/archivo.xls [--validar] [--reemplazar]"
     );
   }
 
@@ -147,53 +143,62 @@ async function importar(): Promise<void> {
 
   console.log(`Leyendo ${rutaArchivo}...`);
   const libro = XLSX.readFile(rutaArchivo, { dense: true });
-  const nombreHoja = libro.SheetNames.includes("ehe2026") ? "ehe2026" : libro.SheetNames[0];
-  const hoja = libro.Sheets[nombreHoja];
-
-  if (!hoja) {
-    throw new Error("El archivo no contiene hojas para importar.");
+  const hojaMuestra = libro.SheetNames.find((nombre) => {
+    if (nombre === "INICIO DE SEGMENTO") return false;
+    const primeraFila = XLSX.utils.sheet_to_json<unknown[]>(libro.Sheets[nombre], {
+      header: 1, range: 0, blankrows: false
+    })[0] ?? [];
+    const encabezados = new Set(primeraFila.map(texto));
+    return encabezados.has("ID_Vivienda") && encabezados.has("ES_INICIO") &&
+      encabezados.has("CALLE") && encabezados.has("SEGMENTO");
+  });
+  if (!hojaMuestra) {
+    throw new Error("No se encontro la hoja completa de viviendas con ID_Vivienda, ES_INICIO, CALLE y SEGMENTO.");
   }
+  const hoja = libro.Sheets[hojaMuestra];
 
   const matriz = XLSX.utils.sheet_to_json<unknown[]>(hoja, { header: 1, raw: false, blankrows: false });
   const encabezados = new Set((matriz[0] ?? []).map(texto));
-  const faltantes: string[] = columnasRequeridas.filter((columna) => !encabezados.has(columna));
-
-  if (!(matriz[0] ?? []).some((columna) => normalizarEncabezado(columna) === "CODVIV")) {
-    faltantes.push("COD VIV");
-  }
+  const faltantes: string[] = columnasMuestra.filter((columna) => !encabezados.has(columna));
 
   if (faltantes.length > 0) {
     throw new Error(`Faltan columnas requeridas: ${faltantes.join(", ")}`);
   }
 
   const filas = XLSX.utils.sheet_to_json<FilaXls>(hoja, { defval: "", raw: false, blankrows: false });
-  const filasEhe2026 = filas
-    .map((fila, index) => ({ fila, numeroFila: index + 2 }))
-    .filter(
-      ({ fila }) =>
-        texto(fila.ENCUESTA).toUpperCase() === "EHE" && texto(fila.ENC_2026).toUpperCase() === "X"
-    );
+  const filasSeleccionadas = filas.map((fila, index) => ({ fila, numeroFila: index + 2 }));
 
-  if (filasEhe2026.length === 0) {
-    throw new Error("No se encontraron filas con ENCUESTA = EHE y ENC_2026 = X.");
+  if (filasSeleccionadas.length === 0) {
+    throw new Error("No se encontraron viviendas para importar.");
+  }
+
+  validarSegmentos(filasSeleccionadas);
+
+  for (const { fila, numeroFila } of filasSeleccionadas) {
+    valorRequerido(fila, "NVIV", numeroFila);
   }
 
   const codigosVistos = new Set<string>();
   const codigosDuplicados = new Set<string>();
 
-  for (const { fila, numeroFila } of filasEhe2026) {
-    const codViv = obtenerCodViv(fila, numeroFila);
+  for (const { fila, numeroFila } of filasSeleccionadas) {
+    const codViv = valorRequerido(fila, "ID_Vivienda", numeroFila);
     if (codigosVistos.has(codViv)) codigosDuplicados.add(codViv);
     codigosVistos.add(codViv);
   }
 
   if (codigosDuplicados.size > 0) {
     const muestra = [...codigosDuplicados].slice(0, 10).join(", ");
-    throw new Error(`El archivo contiene COD VIV duplicados: ${muestra}.`);
+    throw new Error(`El archivo contiene identificadores de vivienda duplicados: ${muestra}.`);
   }
 
-  const viviendas = filasEhe2026.map(({ fila, numeroFila }) => convertirFila(fila, numeroFila));
+  const viviendas = filasSeleccionadas.map(({ fila, numeroFila }) => convertirFila(fila, numeroFila));
   const lotes = dividirEnLotes(viviendas, TAMANO_LOTE);
+
+  if (validar) {
+    console.log(`Validacion correcta: ${viviendas.length} viviendas de la hoja ${hojaMuestra}. No se modifico la base de datos.`);
+    return;
+  }
 
   console.log(
     `${reemplazar ? "Reemplazando la carga" : "Agregando viviendas"}: ${viviendas.length} filas en ${lotes.length} lotes...`
@@ -211,7 +216,7 @@ async function importar(): Promise<void> {
 
         if (viviendasSinCodViv > 0) {
           throw new Error(
-            `Hay ${viviendasSinCodViv} viviendas de una importacion anterior sin COD VIV. ` +
+            `Hay ${viviendasSinCodViv} viviendas de una importacion anterior sin identificador. ` +
               "Vuelve a importar una vez el archivo completo usando --reemplazar; las siguientes cargas podran ser incrementales."
           );
         }
@@ -239,12 +244,11 @@ async function importar(): Promise<void> {
 
   console.log("Importacion completada.");
   console.log(`Viviendas agregadas: ${agregadas}`);
-  console.log(`Viviendas omitidas porque COD VIV ya existia: ${viviendas.length - agregadas}`);
+  console.log(`Viviendas omitidas porque ID_Vivienda ya existia: ${viviendas.length - agregadas}`);
   console.log(`Viviendas EHE 2026 acumuladas: ${total}`);
   console.log(`Partidos: ${partidos.length}`);
   console.log(`UPM: ${upms.length}`);
   console.log(`Dominios: ${dominios.length}`);
-  console.log(`Filas no importadas por no ser EHE 2026: ${filas.length - filasEhe2026.length}`);
 }
 
 importar()

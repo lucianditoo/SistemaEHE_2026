@@ -20,6 +20,7 @@ model Vivienda {
   radio         String?
   segmento      String?
   orden_viv     String?
+  es_inicio     Boolean  @default(false)
   manzana       String?
   lado          String?
   calle         String?

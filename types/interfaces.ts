@@ -11,6 +11,7 @@ export interface Vivienda {
   radio: string | null;
   segmento: string | null;
   orden_viv: string | null;
+  es_inicio: boolean;
   manzana: string | null;
   lado: string | null;
   calle: string | null;

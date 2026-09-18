@@ -1,0 +1,1 @@
+ALTER TABLE "viviendas" ADD COLUMN "es_inicio" BOOLEAN NOT NULL DEFAULT false;

@@ -11,12 +11,12 @@ const columnas = [
   "Lado",
   "Calle",
   "Numero",
-  "Tipo Viv",
   "Edificio",
   "Entrada",
   "Piso",
   "Depto",
   "Habit.",
+  "Tipo Viv",
   "Descripcion",
   "Observaciones del Encuestador",
   "Telefono",
@@ -42,19 +42,19 @@ export function TablaViviendas({ viviendas }: TablaViviendasProps) {
         {viviendas.map((vivienda, index) => (
           <tr key={vivienda?.id ?? "fila-vacia-" + index}>
             <td>{valor(vivienda?.orden_viv)}</td>
-            <td>{valor(vivienda?.manzana)}</td>
-            <td>{valor(vivienda?.lado)}</td>
-            <td>{valor(vivienda?.calle)}</td>
-            <td>{valor(vivienda?.numero)}</td>
-            <td>{valor(vivienda?.tipo_viv)}</td>
-            <td>{valor(vivienda?.edificio)}</td>
-            <td>{valor(vivienda?.entrada)}</td>
-            <td>{valor(vivienda?.piso)}</td>
-            <td>{valor(vivienda?.depto)}</td>
-            <td>{valor(vivienda?.habitacion)}</td>
-            <td>{valor(vivienda?.descripcion)}</td>
-            <td>{valor(vivienda?.observaciones)}</td>
-            <td>{valor(vivienda?.telefono)}</td>
+            <td>{index === 0 ? valor(vivienda?.manzana) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.lado) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.calle) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.numero) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.edificio) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.entrada) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.piso) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.depto) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.habitacion) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.tipo_viv) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.descripcion) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.observaciones) : ""}</td>
+            <td>{index === 0 ? valor(vivienda?.telefono) : ""}</td>
             <td></td>
             <td></td>
           </tr>
